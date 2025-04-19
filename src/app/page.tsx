@@ -2,6 +2,7 @@
 
 import { useSocket } from "@/lib/SocketContext";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 interface Message {
   id: number;
@@ -13,7 +14,9 @@ interface Message {
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [user, setUser] = useState("");
+  const [theme, setTheme] = useState<"light" | "dark">("light");
   const { socket, isConnected } = useSocket();
 
   const fetchMessages = async () => {
@@ -33,6 +36,7 @@ export default function Home() {
     }
 
     try {
+      setIsSendingMessage(true);
       const response = await fetch("/api/messages", {
         method: "POST",
         headers: {
@@ -46,34 +50,63 @@ export default function Home() {
 
       if (response.ok) {
         setNewMessage("");
+      } else {
+        toast.error("Error sending message");
       }
     } catch (error) {
+      toast.error("Error sending message");
       console.error("Error sending message:", error);
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
+  const toggleTheme = () => {
+    const newTheme = theme === "light" ? "dark" : "light";
+    setTheme(newTheme);
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
   useEffect(() => {
-    if (socket) {
-      socket.on("receive-message", (message: Message) => {
-        setMessages((prevMessages) => {
-          if (prevMessages.some((m) => m.id === message.id)) {
-            return prevMessages;
-          }
-
-          // TODO prevMessages already sorted. insert message at the respective index instead of sorting again
-          const updatedMessages = [...prevMessages, message].sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
-          return updatedMessages;
-        });
-      });
-
-      return () => {
-        socket.off("receive-message");
-      };
+    // Check for saved theme preference or use system preference
+    const savedTheme = localStorage.getItem("theme");
+    
+    if (savedTheme) {
+      setTheme(savedTheme as "light" | "dark");
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      return;
     }
+    
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme = prefersDark ? "dark" : "light";
+    setTheme(initialTheme);
+    document.documentElement.setAttribute("data-theme", initialTheme);
+  }, []);
+
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+    socket.on("receive-message", (message: Message) => {
+      setMessages((prevMessages) => {
+        if (prevMessages.some((m) => m.id === message.id)) {
+          return prevMessages;
+        }
+
+        // TODO prevMessages already sorted. insert message at the respective index instead of sorting again
+        const updatedMessages = [...prevMessages, message].sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+
+        return updatedMessages;
+      });
+    });
+
+    return () => {
+      socket.off("receive-message");
+    };
   }, [socket]);
 
   useEffect(() => {
@@ -81,18 +114,33 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center p-4">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-2xl font-bold mb-4">Chat App</h1>
+    <main className="flex min-h-full w-full flex-col items-center p-4">
+      <div className="w-full max-w-2xl flex flex-col h-full">
+        <div className="flex justify-between items-center mb-4 flex-none">
+          <h1 className="text-2xl font-bold">Chat App</h1>
+          <div className="flex items-center gap-2">
+            <span className="text-xs">🌞</span>
+            <input 
+              type="checkbox" 
+              className="toggle toggle-sm" 
+              checked={theme === "dark"}
+              onChange={toggleTheme}
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            />
+            <span className="text-xs">🌙</span>
+          </div>
+        </div>
 
-        <div className="mb-4 flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={user}
-            onChange={(e) => setUser(e.target.value)}
-            className="flex-1 p-2 border rounded"
-          />
+        <div className="mb-4 flex items-center gap-2 flex-none">
+          <label className="input flex-1">
+            <span className="label">Name: </span>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={user}
+              onChange={(e) => setUser(e.target.value)}
+            />
+          </label>
           <div
             className={`w-3 h-3 rounded-full ${
               isConnected ? "bg-green-500" : "bg-red-500"
@@ -101,29 +149,42 @@ export default function Home() {
           ></div>
         </div>
 
-        <div className="border rounded-lg p-4 mb-4 h-96 overflow-y-auto">
+        <div className="border rounded-lg p-4 mb-4 overflow-y-auto flex-1 min-h-0">
           {messages.map((message) => (
-            <div key={message.id} className="mb-2">
-              <strong>{message.user}: </strong>
-              {message.content}
-              <div className="text-xs text-gray-500">
+            <div
+              key={message.id}
+              className={
+                "chat " + (message.user === user ? "chat-end" : "chat-start")
+              }
+            >
+              <div className="chat-header">{message.user}:</div>
+              <div className="chat-bubble">{message.content}</div>
+              <div className="chat-footer">
                 {new Date(message.createdAt).toLocaleString()}
               </div>
             </div>
           ))}
         </div>
 
-        <form onSubmit={sendMessage} className="flex gap-2">
+        <form onSubmit={sendMessage} className="flex gap-2 flex-none">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 p-2 border rounded"
+            className="flex-1 input"
           />
           <button
             type="submit"
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="btn btn-primary"
+            disabled={isSendingMessage || !newMessage.trim() || !user.trim()}
+            title={
+              isSendingMessage
+                ? "Sending..."
+                : !newMessage.trim() || !user.trim()
+                ? "Enter a message and your name"
+                : undefined
+            }
           >
             Send
           </button>
