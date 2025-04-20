@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useLogger } from './logger/LoggerContext';
 
 interface SocketContextProps {
     socket: Socket | null;
@@ -18,18 +19,19 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const logger = useLogger();
 
     useEffect(() => {
-        const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001');
+        const socketInstance = io(process.env.NEXT_PUBLIC_SOCKET_URL);
 
         socketInstance.on('connect', () => {
             setIsConnected(true);
-            console.log('Connected to socket server');
+            logger.debug('Connected to socket server');
         });
 
         socketInstance.on('disconnect', () => {
             setIsConnected(false);
-            console.log('Disconnected from socket server');
+            logger.debug('Disconnected from socket server');
         });
 
         setSocket(socketInstance);

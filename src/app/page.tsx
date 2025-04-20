@@ -1,5 +1,6 @@
 "use client";
 
+import { useLogger } from "@/lib/logger/LoggerContext";
 import { useSocket } from "@/lib/SocketContext";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -18,6 +19,7 @@ export default function Home() {
   const [user, setUser] = useState("");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const { socket, isConnected } = useSocket();
+  const logger = useLogger();
 
   const fetchMessages = async () => {
     try {
@@ -25,15 +27,12 @@ export default function Home() {
       const data = await response.json();
       setMessages(data);
     } catch (error) {
-      console.error("Error fetching messages:", error);
+      logger.error("Error fetching messages:", error);
     }
   };
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user.trim()) {
-      return;
-    }
 
     try {
       setIsSendingMessage(true);
@@ -55,7 +54,7 @@ export default function Home() {
       }
     } catch (error) {
       toast.error("Error sending message");
-      console.error("Error sending message:", error);
+      logger.error("Error sending message:", error);
     } finally {
       setIsSendingMessage(false);
     }

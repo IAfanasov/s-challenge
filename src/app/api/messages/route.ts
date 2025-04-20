@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '../../../generated/prisma';
+import { logger } from "@/lib/logger/server";
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,7 @@ export async function POST(request: Request) {
         const { user, content } = await request.json();
 
         if (!user || !content) {
+            logger.debug('Error creating message: User and content are required');
             return NextResponse.json(
                 { error: 'User and content are required' },
                 { status: 400 }
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json(message);
     } catch (error) {
-        console.error('Error creating message:', error);
+        logger.wait.error('Error creating message:', error);
         return NextResponse.json(
             { error: 'Failed to create message' },
             { status: 500 }
@@ -41,7 +43,7 @@ export async function GET() {
 
         return NextResponse.json(messages);
     } catch (error) {
-        console.error('Error fetching messages:', error);
+        logger.wait.error('Error fetching messages:', error);
         return NextResponse.json(
             { error: 'Failed to fetch messages' },
             { status: 500 }
