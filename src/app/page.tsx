@@ -135,11 +135,11 @@ export default function Home() {
   }, [logger, queryClient, socket, refetch]);
 
   return (
-    <main className="flex min-h-full w-full flex-col items-center p-4">
+    <main className="flex min-h-[100dvh] w-full flex-col items-center">
       {error ? (
         <div>{error.message}</div>
       ) : (
-        <div className="w-full max-w-2xl flex flex-col h-full">
+        <div className="w-full max-w-2xl flex flex-col h-[100dvh] py-4">
           <div className="flex justify-between items-center mb-4 flex-none">
             <h1 className="text-2xl font-bold">Chat App</h1>
             <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export default function Home() {
             ></div>
           </div>
 
-          <div className="border rounded-lg p-4 mb-4 overflow-y-auto flex-1 min-h-0">
+          <div className="border rounded-lg p-4 overflow-y-auto flex-1">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -192,7 +192,7 @@ export default function Home() {
             ))}
           </div>
 
-          <form onSubmit={sendMessage} className="flex gap-2 flex-none">
+          <form onSubmit={sendMessage} className="flex gap-2 flex-none mt-4">
             <input
               type="text"
               value={newMessage}
