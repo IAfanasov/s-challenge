@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import ReactQueryProvider from "@/lib/ReactQueryProvider";
 import { SocketProvider } from "@/lib/SocketContext";
 import { LoggerProvider } from "@/lib/logger/LoggerContext";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,10 +32,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
         <LoggerProvider>
-          <SocketProvider>
-            {children}
-            <Toaster />
-          </SocketProvider>
+          <ReactQueryProvider>
+            <SocketProvider>
+              {children}
+              <Toaster />
+            </SocketProvider>
+          </ReactQueryProvider>
         </LoggerProvider>
       </body>
     </html>
