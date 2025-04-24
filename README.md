@@ -6,19 +6,25 @@
    npm i
 ```
 
-2. Run the database server:
+2. Generate Prisma client:
+
+```
+   npm run prisma:generate
+```
+
+3. Run the database server:
 
 ```
    docker compose up postgres -d
 ```
 
-3. Run the migrations:
+4. Run the migrations:
 
 ```
-   npx prisma migrate deploy
+   npm run prisma:migrate
 ```
 
-4. Run the application:
+5. Run the application:
 
 ```
    npm run dev-with-ws
