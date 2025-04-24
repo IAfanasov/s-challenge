@@ -34,6 +34,10 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             logger.debug('Disconnected from socket server');
         });
 
+        socketInstance.on('connect_error', (err) => {
+            logger.error(`Socket connection error: ${err.message}`);
+        });
+
         setSocket(socketInstance);
 
         return () => {

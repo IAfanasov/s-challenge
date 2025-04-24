@@ -27,7 +27,9 @@ app.prepare().then(async () => {
         const message = JSON.parse(notification.payload);
         const messageWithNormalizedDate = {
           ...message,
-          createdAt: `${message.createdAt}Z`, // TODO: reuse generic prisma's approach instead of this hack
+          // TODO: reuse generic prisma's approach instead of this hack
+          // new Date(message.createdAt).toISOString() doesn't handle timezone correctly
+          createdAt: `${message.createdAt}Z`, 
         };
         console.log("Received message notification:", messageWithNormalizedDate);
         io.emit("receive-message", messageWithNormalizedDate);

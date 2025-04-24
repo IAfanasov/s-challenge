@@ -105,6 +105,7 @@ export default function Home() {
       return;
     }
     socket.on("receive-message", (message: Message) => {
+      console.debug("socket receive-message");
       queryClient.setQueryData(["messages"], (prevMessages: Message[]) => {
         if (prevMessages.some((m) => m.id === message.id)) {
           return prevMessages;
@@ -119,11 +120,13 @@ export default function Home() {
     });
 
     socket.on("error", (error: Error) => {
+      console.debug("socket error");
       logger.error("Socket error:", error);
       toast.error("Error connecting to server");
     });
 
     socket.on("reconnect", () => {
+      console.debug("socket reconnected");
       refetch();
     });
 
