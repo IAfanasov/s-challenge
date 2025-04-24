@@ -31,5 +31,30 @@ jobs:
     - name: Run build
       run: npm run build
 
-    - name: Run tests
-      run: npm run test 
+    - name: Run tests with coverage
+      run: npm run test -- --coverage
+
+    - name: Output coverage summary
+      run: |
+        echo "# Test Coverage Results" >> $GITHUB_STEP_SUMMARY
+        echo "## Summary" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f coverage/coverage-summary.json ]; then
+          echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+          cat coverage/coverage-summary.json >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        elif [ -f coverage/lcov-report/index.html ]; then
+          echo "Coverage report generated. See artifacts for details." >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          grep -A 5 "fraction" coverage/lcov-report/index.html | grep -o "[0-9.]*%" || echo "Coverage data not found"
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "No standard coverage report found." >> $GITHUB_STEP_SUMMARY
+        fi
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        retention-days: 1 

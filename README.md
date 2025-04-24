@@ -44,6 +44,10 @@ The app uses WebSockets (socket.io) for real-time updates, combined with Postgre
 
 When a new message is inserted, a Postgres trigger emits a NOTIFY event. The backend listens for these events and immediately broadcasts the message to all connected clients via WebSocket. It's allows a simple and efficient setup for single instances deployment without external brokers like Redis or Kafka. On the other hand it doesn't scale well across multiple backend instances and has a limit on the payload size (8KB).
 
+# bonus
+
+Basic CI setup on GitHub. See [Actions](https://github.com/IAfanasov/s-challenge/actions).
+
 # what could be improved
 
 - server side rendering
